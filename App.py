@@ -8,13 +8,15 @@ import json
 import multiprocessing
 import psutil
 
+home_path = os.path.expanduser("~")
+
 def get_downloads():
     with open("./data.json", "r+") as e:
         data = json.load(e)
         executables = data["Executables"]
     download_list = []
-    for file in os.listdir("C:/Users/pc/Downloads"):
-        file = f"C:/Users/pc/Downloads/{file}"
+    for file in os.listdir(home_path+"/Downloads/"):
+        file = home_path+f"/Downloads/{file}"
         if os.path.isfile(file):
             file_exists = False
             for item in executables:
@@ -26,28 +28,25 @@ def get_extension(file):
     name, extension = os.path.splitext(file)
     return extension 
 
-def ask_auto_apps(): # soooooooooon
-    pass
-
 def main():
 
-    convert_jpg = [".avif", ".webp", ".png", ".jpeg", ".tiff", ".raw", ".heif", ".jpg"]
+    convert_jpg = [".avif", ".webp", ".png", ".jpeg", ".tiff", ".raw", ".heif", ".jpg", ".ico"]
     zips = [".7z", ".zip", ".rar"]
     convert_pdf = [".pptx", ".pdf", ".ppt"]
 
     with open("./settings.json", "r+") as e:
         settings = json.load(e)
 
-        if not os.path.exists("C:/Users/pc/Downloads/Images"): # bad
-            os.mkdir("C:/Users/pc/Downloads/Images")
-        if not os.path.exists("C:/Users/pc/Downloads/Torrents"):
-            os.mkdir("C:/Users/pc/Downloads/Torrents")
-        if not os.path.exists("C:/Users/pc/Downloads/APKs"):
-            os.mkdir("C:/Users/pc/Downloads/APKs")
-        if not os.path.exists("C:/Users/pc/Downloads/Compressed"):
-            os.mkdir("C:/Users/pc/Downloads/Compressed")
-        if not os.path.exists("C:/Users/pc/Downloads/PDFs"):
-            os.mkdir("C:/Users/pc/Downloads/PDFs")
+        if not os.path.exists(home_path+"/Downloads/Images"): # bad
+            os.mkdir(home_path+"/Downloads/Images")
+        if not os.path.exists(home_path+"/Downloads/Torrents"):
+            os.mkdir(home_path+"/Downloads/Torrents")
+        if not os.path.exists(home_path+"/Downloads/APKs"):
+            os.mkdir(home_path+"/Downloads/APKs")
+        if not os.path.exists(home_path+"/Downloads/Compressed"):
+            os.mkdir(home_path+"/Downloads/Compressed")
+        if not os.path.exists(home_path+"/Downloads/PDFs"):
+            os.mkdir(home_path+"/Downloads/PDFs")
 
         auto_apps_process = multiprocessing.Process()
 

@@ -3,7 +3,7 @@ import os
 import multiprocessing
 import shutil
 
-def apk_algorithm(file): # "ALGORITHMMMMMMMM"
+def apk_algorithm(file):
 
     global root
     root = tk.Tk()
@@ -29,8 +29,6 @@ def apk_algorithm(file): # "ALGORITHMMMMMMMM"
 
     root.mainloop()
 
-# no i am not making a good looking GUI
-
 def openapk(file):
     name, extension = os.path.splitext(file)
     name = os.path.basename(file).split('/')[-1][:-len(extension)]
@@ -40,7 +38,7 @@ def openapk(file):
     move = f"{file[:-count]}APKs/{name}{extension}"
 
     while os.path.exists(move):
-        move = f"{move[:-len(extension)]}1{extension}" # Quite dumb way to deal with the already exist error but you would probably know by now that I am lazy
+        move = f"{move[:-len(extension)]}1{extension}"
 
     shutil.move(file, move)
 

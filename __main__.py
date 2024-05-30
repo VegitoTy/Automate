@@ -1,8 +1,11 @@
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import messagebox
+from tkinter import filedialog
 import json
 import App
+import pathlib
+from multiprocessing import Process
 
 class GUI:
 
@@ -56,6 +59,9 @@ class GUI:
 
         ft = tkFont.Font(family='Times', size=18)
 
+        self.apps = tk.Button(root, text="Choose Apps For Auto Exe", font=ft, justify="left", command=self.app_func)
+        self.apps.pack()
+
         self.auto_exe=tk.Checkbutton(root, text="Auto Exe", font=ft, justify="center", variable=self.auto_exe_var)
         self.auto_exe.pack()
                                      
@@ -82,6 +88,56 @@ class GUI:
 
         self.save = tk.Button(root, text="Save", font=ft, justify="center", command=self.save_func)
         self.save.pack()
+
+    def app_func(self):
+        def add_app():
+            file_name = pathlib.Path(filedialog.askopenfilename(title="Select A Executable", filetypes=[("Executable", ".exe")])).name
+            if file_name:
+                with open("./data.json", "r+") as e:
+                    data = json.load(e)
+                    data["Apps"].append(file_name)
+                    e.seek(0)
+                    json.dump(data, e)
+                    e.truncate()
+            top.destroy()
+            self.app_func()
+
+        def remove_app():
+            with open("./data.json", "r+") as e:
+                data = json.load(e)
+                SelectList = lb.curselection()
+                if not SelectList: return messagebox.showerror("Auto Exe", "App Not Selected.")
+                apps = [lb.get(i) for i in SelectList]
+                for app in apps:
+                    data["Apps"].remove(app)
+                e.seek(0)
+                json.dump(data, e)
+                e.truncate()
+
+            lb.delete(0, "end")
+            current_apps.remove(app)
+            for x in current_apps: lb.insert("end", x)
+
+        ft = tkFont.Font(family='Times', size=18)
+
+        top = tk.Toplevel(root)
+        top.geometry("750x250")
+        top.title("Add Or Remove Apps")
+        with open("./data.json") as e:
+            data = json.load(e)
+            current_apps = []
+            for exe in data["Apps"]:
+                current_apps.append(exe)
+            
+            info_label = tk.Label(top, text="Select The App To Remove Or Click The Add Button To Add Some App", font=ft)
+            info_label.pack()
+
+            lb = tk.Listbox(top, selectmode="MULTIPLE", height=len(current_apps), width=200)
+            for x in current_apps: lb.insert("end", x)
+            lb.pack()
+
+            tk.Button(top, text="Remove", command=remove_app).pack()
+            tk.Button(top, text="Add", command=add_app).pack()
 
     def save_func(self):
         auto_exe = False
@@ -120,7 +176,7 @@ class GUI:
             settings["auto_jars"] = auto_jars
             settings["auto_pdfs"] = auto_pdfs
             settings["auto_apps"] = auto_apps
-# epitome of repetitivness
+
             e.seek(0)
             json.dump(settings, e, indent=4)
             e.truncate()

@@ -44,7 +44,7 @@ def open1(file):
 def open_del_process(file):
     os.system(f'"{file}"')
     os.remove(file)
-# not much going on here
+
 def opendel(file):
     file_run = multiprocessing.Process(target=open_del_process, args=[file])
     file_run.start()

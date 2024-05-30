@@ -24,7 +24,7 @@ class AutoApps:
                 pass
 
     def main(self):
-        while True: # quite a lousy way to do all this
+        while True:
             time.sleep(2)
             if self.usage_limit():
                 self.close_apps()
