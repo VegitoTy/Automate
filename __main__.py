@@ -1,11 +1,12 @@
 import tkinter as tk
 import tkinter.font as tkFont
+from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 import json
 import App
 import pathlib
-from multiprocessing import Process
+from pynput import keyboard
 
 class GUI:
 
@@ -30,6 +31,7 @@ class GUI:
             auto_jars = 0
             auto_pdfs = 0
             auto_apps = 0
+            voice_commands = 0
 
             if settings["auto_exe"]:
                 auto_exe = 1
@@ -47,6 +49,8 @@ class GUI:
                 auto_pdfs = 1
             if settings["auto_apps"]:
                 auto_apps = 1
+            if settings["voice_commands"]:
+                voice_commands = 1
 
             self.auto_exe_var = tk.IntVar(value=auto_exe)
             self.auto_jpg_var = tk.IntVar(value=auto_jpg)
@@ -56,11 +60,18 @@ class GUI:
             self.auto_jars_var = tk.IntVar(value=auto_jars)
             self.auto_pdfs_var = tk.IntVar(value=auto_pdfs)
             self.auto_apps_var = tk.IntVar(value=auto_apps)
+            self.voice_commands_var = tk.IntVar(value=voice_commands)
 
         ft = tkFont.Font(family='Times', size=18)
 
-        self.apps = tk.Button(root, text="Choose Apps For Auto Exe", font=ft, justify="left", command=self.app_func)
+        self.apps = tk.Button(root, text="Choose Apps For Auto Exe", font=ft, justify="center", command=self.app_func)
         self.apps.pack()
+
+        self.cmds = tk.Button(root, text="Configure Voice Commands", font=ft, justify="center", command=self.cmd_func)
+        self.cmds.pack()
+
+        self.voice_commands=tk.Checkbutton(root, text="Voice Commands", font=ft, justify="center", variable=self.voice_commands_var)
+        self.voice_commands.pack()
 
         self.auto_exe=tk.Checkbutton(root, text="Auto Exe", font=ft, justify="center", variable=self.auto_exe_var)
         self.auto_exe.pack()
@@ -86,8 +97,215 @@ class GUI:
         self.auto_apps=tk.Checkbutton(root, text="Auto Apps", font=ft, justify="center", variable=self.auto_apps_var)
         self.auto_apps.pack()
 
-        self.save = tk.Button(root, text="Save", font=ft, justify="center", command=self.save_func)
+        self.save = tk.Button(root, text="Save And Run", font=ft, justify="center", command=self.save_func)
         self.save.pack()
+
+    def cmd_func(self):
+        def add_app():
+            ft = tkFont.Font(family='Times', size=10)
+
+            def terminal():
+                def save():
+                    if not command_entry.get() or command_entry.get() == "" or not voice_entry.get() or voice_entry.get() == "": return messagebox.showerror("Voice Configuration", "Please Fill All Fields!")
+                    with open("./data.json", "r+") as e:
+                        data:dict = json.load(e)
+                        doc = {voice_entry.get().lower(): ["cmd", command_entry.get()]}
+
+                        if (voice_entry.get().lower(), ["cmd", command_entry.get()]) in data["voice_cmds"].items():
+                            return messagebox.showerror("Voice Configuarion", "Cannot Have Duplicates!")
+
+                        data["voice_cmds"] = data["voice_cmds"] | doc
+                        e.seek(0)
+                        json.dump(data, e)
+                        e.truncate()
+                    table.insert(parent='', index=tk.END, values=(voice_entry.get().lower(), "cmd", command_entry.get()))
+                    top3.destroy()
+
+                top2.destroy()
+                top3 = tk.Toplevel(root)
+                top3.geometry("375x125")
+                top3.title("Terminal Command")
+                frame3 = tk.Frame(top3)
+
+                tk.Label(frame3, text="Voice To Recognize", font=ft).grid(row = 0, column = 0)
+                voice_entry = tk.StringVar()
+                tk.Entry(frame3, textvariable=voice_entry).grid(row = 0, column = 1)
+                tk.Label(frame3, text="Terminal Command", font=ft).grid(row = 1, column = 0)
+                command_entry = tk.StringVar()
+                tk.Entry(frame3, textvariable=command_entry).grid(row = 1, column = 1)
+
+                frame3.pack()
+
+                tk.Button(top3, text="Save", command=save).pack()
+
+            def shortcut():
+                keys_pressed = []
+
+                def stop_record():
+                    if listener.is_alive():
+                        listener.stop()
+
+                    record_button.configure(text="Start Recording Shortcut", command=record_shortcut)
+
+                def record_shortcut():
+                    record_button.configure(text="Stop Recording", command=stop_record)
+
+                    def on_press(key):
+                        try:
+                            name = key.char.upper()
+                            keys_pressed.append(name)
+                        except AttributeError:
+                            name = key.name
+                            if name == "cmd": return
+                            keys_pressed.append(name)
+
+                        text = shortcut_label.cget("text")
+                        if text == "":
+                            key_pressed_str = name
+                        else:
+                            key_pressed_str = f"{text} + {name}"
+
+                        shortcut_label.configure(text=key_pressed_str)
+
+                    global listener
+                    listener = keyboard.Listener(on_press=on_press)
+                    listener.start()
+
+                def add_window():
+                    keys_pressed.append("win")
+
+                    text = shortcut_label.cget("text")
+
+                    if text == "":
+                        text += "Win"
+                    else:
+                        text = f"{text} + Win"
+
+                    shortcut_label.configure(text=text)
+
+                def save():
+                    if not voice_entry.get() or voice_entry.get() == "": return messagebox.showerror("Voice Configuration", "Please Fill All Fields!")
+                    if keys_pressed == []: return messagebox.showerror("Voice Configuration", "Record A Key Combination!")
+
+                    with open("./data.json", "r+") as e:
+                        data:dict = json.load(e)
+                        doc = {voice_entry.get().lower(): ["shortcut", keys_pressed]}
+
+                        if (voice_entry.get().lower(), ["shortcut", keys_pressed]) in data["voice_cmds"].items(): 
+                            return messagebox.showerror("Voice Configuration", "Cannot Have Duplicates!")
+
+                        data["voice_cmds"] = data["voice_cmds"] | doc
+                        e.seek(0)
+                        json.dump(data, e)
+                        e.truncate()
+                    table.insert(parent='', index=tk.END, values=(voice_entry.get().lower(), "shortcut", shortcut_label.cget("text")))
+                    top3.destroy()          
+
+                def clear():
+                    keys_pressed.clear()
+                    shortcut_label.configure(text="")
+
+                top2.destroy()
+                top3 = tk.Toplevel(root)
+                top3.geometry("375x125")
+                top3.title("Windows Shortcut")
+                frame3 = tk.Frame(top3)
+
+                tk.Label(frame3, text="Voice To Recognize", font=ft).grid(row = 0, column = 0)
+                voice_entry = tk.StringVar()
+                tk.Entry(frame3, textvariable=voice_entry).grid(row = 0, column = 1)
+                frame3.pack()
+
+                tk.Button(top3, text="Add Windows Key", font=ft, justify="center", command=add_window).pack()
+
+                shortcut_label = tk.Label(top3, text = "", font=ft, justify='center')
+                shortcut_label.pack()
+
+                record_button = tk.Button(top3, text = "Start Recording Shortcut", justify='center', command=record_shortcut)
+                record_button.pack()
+
+                frame4 = tk.Frame(top3)
+                tk.Button(frame4, text="Clear", justify='center', command=clear).grid(row=0, column=0)
+                tk.Button(frame4, text="Save", justify='center', command=save).grid(row=0, column=1)
+                frame4.pack()
+
+            top2 = tk.Toplevel(root)
+            top2.geometry("375x125")
+            top2.title("Add A Voice Command")
+            tk.Label(top2, text="Select the type of function the voice command is gonna do.", font=ft).pack()
+
+            frame2 = tk.Frame(top2)
+            tk.Button(frame2, text="Windows Shortcut", command=shortcut, justify="center").grid(row = 0, column = 0)
+            tk.Button(frame2, text="Terminal Command", command=terminal, justify="center").grid(row = 0, column = 1)
+            frame2.pack()
+
+        def remove_app():
+            with open("./data.json", "r+") as e:
+                data:dict = json.load(e)
+                SelectList = table.selection()
+                if not SelectList: return messagebox.showerror("Voice Recognition", "No Command Selected.")
+
+                for command in SelectList:
+                    for key, value in data["voice_cmds"].items():
+                        info = table.item(table.focus())["values"]
+                        change = False
+                        if key.lower() == info[0].lower() and value[0] == info[1]:
+                            if info[1] == "cmd":
+                                if info[2].lower() == value[1].lower():
+                                    change = True
+                            else:
+                                shortcut_list = info[2].lower().split(" + ")
+                                if shortcut_list == value[1]:
+                                    change = True
+                        
+                        if change == True:
+                            del data["voice_cmds"][key]
+                            break
+                    table.delete(command)
+
+                e.seek(0)
+                json.dump(data, e)
+                e.truncate()
+
+        ft = tkFont.Font(family='Times', size=18)
+
+        top = tk.Toplevel(root)
+        top.geometry("750x250")
+        top.title("Voice Commands Configuration")
+        with open("./data.json") as e:
+            data = json.load(e)
+            current_cmds:dict = data["voice_cmds"]
+            voices = []
+            types = []
+            commands = []
+            for key, value in current_cmds.items():
+                voices.append(key)
+                types.append(value[0])
+                string_val = value[1]
+                if type(value[1]) == list:
+                    string_val = ""
+                    i = 1
+                    for key in value[1]:
+                        if len(value[1]) == i:
+                            string_val += key
+                            break
+                        string_val += f"{key} + "
+                        i += 1
+                commands.append(string_val)
+            table = ttk.Treeview(top, columns=("voice", "type", "command"), show="headings")
+            table.heading('voice', text="Voice To Recognize")
+            table.heading('type', text="Type Of Command")
+            table.heading('command', text="Command")
+            table.pack(expand=True)
+
+            for i in range(len(voices)):
+                data = (voices[i], types[i], commands[i])
+                table.insert(parent='', index=tk.END, values=data)
+
+            frame = tk.Frame(top)
+            tk.Button(frame, text="Add", command=add_app, justify="center").grid(row = 0, column = 0)
+            tk.Button(frame, text="Remove", command=remove_app, justify="center").grid(row = 0, column = 1)
+            frame.pack()
 
     def app_func(self):
         def add_app():
@@ -136,8 +354,8 @@ class GUI:
             for x in current_apps: lb.insert("end", x)
             lb.pack()
 
-            tk.Button(top, text="Remove", command=remove_app).pack()
             tk.Button(top, text="Add", command=add_app).pack()
+            tk.Button(top, text="Remove", command=remove_app).pack()
 
     def save_func(self):
         auto_exe = False
@@ -148,6 +366,7 @@ class GUI:
         auto_jars = False
         auto_pdfs = False
         auto_apps = False
+        voice_commands = False
 
         if self.auto_exe_var.get() == 1:
             auto_exe = True
@@ -165,6 +384,8 @@ class GUI:
             auto_pdfs = True
         if self.auto_apps_var.get() == 1:
             auto_apps = True
+        if self.voice_commands_var.get() == 1:
+            voice_commands = True
 
         with open("./settings.json", "r+") as e:
             settings = json.load(e)
@@ -176,6 +397,7 @@ class GUI:
             settings["auto_jars"] = auto_jars
             settings["auto_pdfs"] = auto_pdfs
             settings["auto_apps"] = auto_apps
+            settings["voice_commands"] = voice_commands
 
             e.seek(0)
             json.dump(settings, e, indent=4)

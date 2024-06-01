@@ -1,7 +1,7 @@
 # Automate
 # epicness by VegitoTy
 
-from funcs import auto_exe, auto_jpg, auto_torrents, auto_apk, auto_zips, auto_pdfs, auto_apps
+from funcs import auto_exe, auto_jpg, auto_torrents, auto_apk, auto_zips, auto_pdfs, auto_apps, voice_cmds
 import time
 import os
 import json
@@ -53,6 +53,10 @@ def main():
         if settings["auto_apps"]:
             auto_apps_process = multiprocessing.Process(target=auto_apps.AutoApps().main, daemon=True)
         auto_apps_process.start()
+
+        if settings["voice_commands"]:
+            voice_cmds_process = multiprocessing.Process(target=voice_cmds.main, daemon=True)
+            voice_cmds_process.start()
 
         while True:
             time.sleep(.3)
