@@ -1,0 +1,11 @@
+comtypes==1.4.2
+hurry.filesize==0.9
+Pillow==10.3.0
+pillow_avif_plugin==1.4.3
+pillow_heif==0.16.0
+psutil==5.9.8
+py1337x==0.3
+PyAutoGUI==0.9.54
+pynput==1.7.7
+SpeechRecognition==3.10.4
+torrentool==1.2.0
