@@ -109,12 +109,12 @@ class GUI:
                     if not command_entry.get() or command_entry.get() == "" or not voice_entry.get() or voice_entry.get() == "": return messagebox.showerror("Voice Configuration", "Please Fill All Fields!")
                     with open("./data.json", "r+") as e:
                         data:dict = json.load(e)
-                        doc = {voice_entry.get().lower(): ["cmd", command_entry.get()]}
+                        doc = [voice_entry.get().lower(), "cmd", command_entry.get()]
 
-                        if (voice_entry.get().lower(), ["cmd", command_entry.get()]) in data["voice_cmds"].items():
+                        if doc in data["voice_cmds"]:
                             return messagebox.showerror("Voice Configuarion", "Cannot Have Duplicates!")
 
-                        data["voice_cmds"] = data["voice_cmds"] | doc
+                        data["voice_cmds"].append(doc)
                         e.seek(0)
                         json.dump(data, e)
                         e.truncate()
@@ -172,14 +172,14 @@ class GUI:
                     listener.start()
 
                 def add_window():
-                    keys_pressed.append("win")
+                    keys_pressed.append("WIN")
 
                     text = shortcut_label.cget("text")
 
                     if text == "":
-                        text += "Win"
+                        text += "WIN"
                     else:
-                        text = f"{text} + Win"
+                        text = f"{text} + WIN"
 
                     shortcut_label.configure(text=text)
 
@@ -189,12 +189,12 @@ class GUI:
 
                     with open("./data.json", "r+") as e:
                         data:dict = json.load(e)
-                        doc = {voice_entry.get().lower(): ["shortcut", keys_pressed]}
+                        doc = [voice_entry.get().lower(), "shortcut", keys_pressed]
 
-                        if (voice_entry.get().lower(), ["shortcut", keys_pressed]) in data["voice_cmds"].items(): 
+                        if doc in data["voice_cmds"]: 
                             return messagebox.showerror("Voice Configuration", "Cannot Have Duplicates!")
 
-                        data["voice_cmds"] = data["voice_cmds"] | doc
+                        data["voice_cmds"].append(doc)
                         e.seek(0)
                         json.dump(data, e)
                         e.truncate()
@@ -246,21 +246,28 @@ class GUI:
                 if not SelectList: return messagebox.showerror("Voice Recognition", "No Command Selected.")
 
                 for command in SelectList:
-                    for key, value in data["voice_cmds"].items():
+                    i = 0
+                    for saved in data["voice_cmds"]:
                         info = table.item(table.focus())["values"]
                         change = False
-                        if key.lower() == info[0].lower() and value[0] == info[1]:
+                        if saved[0].lower() == info[0].lower() and saved[1] == info[1]:
+                            print("ok")
                             if info[1] == "cmd":
-                                if info[2].lower() == value[1].lower():
+                                print("ok2")
+                                if info[2] == saved[2]:
                                     change = True
                             else:
-                                shortcut_list = info[2].lower().split(" + ")
-                                if shortcut_list == value[1]:
+                                print("ok3")
+                                shortcut_list = info[2].split(" + ")
+                                print(shortcut_list)
+                                print(saved[2])
+                                if shortcut_list == saved[2]:
                                     change = True
                         
                         if change == True:
-                            del data["voice_cmds"][key]
+                            del data["voice_cmds"][i]
                             break
+                        i += 1
                     table.delete(command)
 
                 e.seek(0)
@@ -278,18 +285,18 @@ class GUI:
             voices = []
             types = []
             commands = []
-            for key, value in current_cmds.items():
-                voices.append(key)
-                types.append(value[0])
-                string_val = value[1]
-                if type(value[1]) == list:
+            for info in current_cmds:
+                voices.append(info[0])
+                types.append(info[1])
+                string_val = info[2]
+                if type(info[2]) == list:
                     string_val = ""
                     i = 1
-                    for key in value[1]:
-                        if len(value[1]) == i:
-                            string_val += key
+                    for key in info[2]:
+                        if len(info[2]) == i:
+                            string_val += key.upper()
                             break
-                        string_val += f"{key} + "
+                        string_val += f"{key.upper()} + "
                         i += 1
                 commands.append(string_val)
             table = ttk.Treeview(top, columns=("voice", "type", "command"), show="headings")

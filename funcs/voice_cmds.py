@@ -34,17 +34,17 @@ def main():
             with open("./data.json") as e:
                 lowered_speech = response["transcription"].lower()
                 data = json.load(e)
-                voice_cmds = data["voice_cmds"] # 4311
-                for key, value in voice_cmds.items():
-                    if key.lower() in lowered_speech or key.lower().replace(" ", "") in lowered_speech:
-                        if value[0] == "cmd":
-                            cmd = threading.Thread(target=lambda: os.system(value[1]))
+                voice_cmds = data["voice_cmds"]
+                for info in voice_cmds:
+                    if info[0].lower() in lowered_speech or info[0].lower().replace(" ", "") in lowered_speech:
+                        if info[1] == "cmd":
+                            cmd = threading.Thread(target=lambda: os.system(info[2]))
                             cmd.start()
-                        elif value[0] == "shortcut":
-                            if ["win", "L"] == value[1]:
+                        elif info[1] == "shortcut":
+                            if ["WIN", "L"] == info[2]:
                                 ctypes.windll.user32.LockWorkStation()
                                 continue
-                            pyautogui.hotkey(*value[1])
+                            pyautogui.hotkey(*info[2])
 
         elif response["error"]:
             print(f"ERROR: {response['error']}")

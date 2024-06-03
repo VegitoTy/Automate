@@ -1,0 +1,11 @@
+{
+    "auto_exe": false,
+    "auto_jpg": false,
+    "auto_apk": false,
+    "auto_torrent": false,
+    "auto_zips": false,
+    "auto_jars": false,
+    "auto_pdfs": false,
+    "auto_apps": false,
+    "voice_commands": false
+}
