@@ -20,11 +20,11 @@ You could do it all manually but having just a button press to do anything is co
 Similar to Auto Exe, it gives you a list of options to choose from
 ![image](https://github.com/VegitoTy/Automate/assets/108405056/f3afad04-cf77-492a-9d09-c34ecf0ca52c)
 
-You might wanna convert a image to jpg if its in some other format, instead of going to a online converted or something, this app does it for you, additionally to have your downloads folder sorted, it sends all images in your download folder to a Images folder in your downloads.
+You might wanna convert a image to jpg if its in some other format, instead of going to a online convertor or something, this app does it for you, additionally to have your downloads folder sorted, it sends all images in your download folder to a Images folder in your downloads.
 
 # Auto PDF
 
-This converts a ".ppt" to ".pdf" which just a button click, although it needs powerpoint to be installed, its still quite convenient to have since a ".ppt"( can't be opened by browsers
+This converts a ".ppt" to ".pdf" which just a button click, although it needs powerpoint to be installed, its still quite convenient to have since a ".ppt" can't be opened by browsers
 *(It gives you a option on whether to do or not)*
 apart from that it gives you a option to open, move and open, move, delete or do nothing with the ppt/pdf
 
